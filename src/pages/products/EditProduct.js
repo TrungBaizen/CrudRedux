@@ -1,30 +1,40 @@
 import * as Yup from "yup";
 import {useNavigate, useParams} from "react-router-dom";
 import {ErrorMessage, Field, Form, Formik} from "formik";
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {edit, getById} from "../../redux/services/productService";
 import {useEffect, useState} from "react";
+import {getAll} from "../../redux/services/categoryService";
 
-const StudentSchema = Yup.object().shape({
+const productSchema = Yup.object().shape({
     name: Yup.string()
         .min(2, 'To Short!')
         .max(70, 'To Long!')
-        .required('Required')
+        .required('Không để trông')
     ,
-    description: Yup.string()
-        .required('Required')
+    price: Yup.number()
+        .min(1000,'Giá trị tối thiểu 1000VNĐ')
+        .required('Không để trông')
     ,
-    action: Yup.string()
-        .required('Required')
+    quantity: Yup.number()
+        .min(1,'Số lượng tối thiểu là 1')
+        .required('Không để trông')
+    ,
+    categoryId: Yup.string()
+        .required('Không để trông')
 })
 export function EditProduct() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const {id} = useParams();
+    const categories = useSelector(({categories})=>{
+        return categories.list;
+    })
     const [initialValues, setInitialValues] = useState({
         name: '',
-        description: '',
-        action: ''
+        price: '',
+        quantity: '',
+        categoryId:''
     });
     const editProduct = (value) => {
         dispatch(edit({id,value})).then(()=>{
@@ -32,12 +42,16 @@ export function EditProduct() {
         })
     }
     useEffect(() => {
+        dispatch(getAll()).catch(error => {
+            console.error("Failed to fetch categories:", error);
+        });
         dispatch(getById(id)).then(res => {
             let product = res.payload;
             setInitialValues({
                 name: product.name,
-                description: product.description,
-                action: product.action
+                price: product.price,
+                quantity: product.quantity,
+                categoryId:product.category.id
             });
         });
     }, [dispatch, id]);
@@ -49,16 +63,25 @@ export function EditProduct() {
                 //  giá trị khởi tạo các ô input
                 initialValues={initialValues}
                 onSubmit={editProduct}
-                validationSchema={StudentSchema}
+                validationSchema={productSchema}
                 enableReinitialize={true}
             >
                 <Form>
                     <Field name={"name"} placeholder={"Name"} type={'text'}/>
                     <span style={{color: 'red'}}><ErrorMessage name={'name'}/></span><br/>
-                    <Field name={"description"} placeholder={"Description"} type={'text'}/>
-                    <span style={{color: 'red'}}><ErrorMessage name={'description'}/></span><br/>
-                    <Field name={"action"} placeholder={"Action"} type={'text'}/>
-                    <span style={{color: 'red'}}><ErrorMessage name={'action'}/></span><br/>
+                    <Field name={"price"} placeholder={"Price"} type={'text'}/>
+                    <span style={{color: 'red'}}><ErrorMessage name={'price'}/></span><br/>
+                    <Field name={"quantity"} placeholder={"Quantity"} type={'number'}/>
+                    <span style={{color: 'red'}}><ErrorMessage name={'quantity'}/></span><br/>
+                    <Field name={"categoryId"} as={"select"}>
+                        <option value={""} label={"Select category"}/>
+                        {categories.map(category => (
+                            <option key={category.id} value={category.id}>
+                                {category.name}
+                            </option>
+                        ))}
+                    </Field>
+                    <span style={{color: 'red'}}><ErrorMessage name={'categoryId'}/></span><br/>
                     <button type={"submit"}>Sửa</button>
                 </Form>
             </Formik>
