@@ -5,12 +5,14 @@ import {ListProduct} from "./pages/products/ListProduct";
 import {AddProduct} from "./pages/products/AddProduct";
 import {EditProduct} from "./pages/products/EditProduct";
 import SearchProduct from "./pages/products/SearchProduct";
+import Image from "./pages/products/Image";
 
 function App() {
     return (
         <>
             <Routes>
                 <Route path={'login'} element={<Login/>}/>
+                <Route path={'image'} element={<Image/>}/>
                 <Route path={'products'} element={<Home/>}>
                     <Route path={'home'} element={<ListProduct/>}/>
                     <Route path={'add'} element={<AddProduct/>}/>
